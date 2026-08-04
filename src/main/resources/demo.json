@@ -1,0 +1,30 @@
+{
+  "sources": [
+    { "name": "proxmox", "ok": true,  "last_success": "2026-08-03T14:22:05Z", "error": null },
+    { "name": "docker",  "ok": false, "last_success": "2026-08-03T14:09:41Z", "error": "connection refused" }
+  ],
+  "services": [
+    {
+      "id": "docker:jellyfin",
+      "name": "Jellyfin",
+      "kind": "container",
+      "group": "media",
+      "state": "up",
+      "detail": "Up 6 days",
+      "url": "http://192.168.0.244:8096",
+      "cpu_pct": 3.1,
+      "mem_bytes": 812187648
+    },
+    {
+      "id": "proxmox:lxc/107",
+      "name": "dns247",
+      "kind": "lxc",
+      "group": "network",
+      "state": "up",
+      "detail": "uptime 21d",
+      "url": null,
+      "cpu_pct": 0.4,
+      "mem_bytes": 268435456
+    }
+  ]
+}

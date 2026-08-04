@@ -74,7 +74,7 @@ Proxmox guests use the same model via the guest's Notes field or a matching entr
 
 - `private` (default) — everything with `labwatch.show=true`.
 - `public` — only services whose `labwatch.profiles` includes `public`.
-- `demo` — ignores collectors entirely and serves fixture data from `testdata/demo.json`. Nothing touches the real infrastructure.
+- `demo` — ignores collectors entirely and serves fixture data from `src/main/resources/demo.json`. Nothing touches the real infrastructure.
 
 `demo` is what a publicly reachable deployment runs.
 
@@ -206,7 +206,7 @@ src/main/java/dev/labwatch/
   http/                        routes, JSON serialization
   visibility/Filter.java       profile + label filtering
 src/main/resources/web/        template + static assets
-src/test/resources/demo.json   fixture data for demo profile
+src/main/resources/demo.json   fixture data for demo profile
 ```
 
 ```bash

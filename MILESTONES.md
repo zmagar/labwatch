@@ -21,7 +21,7 @@ Rules that apply to every milestone:
 - `StatusStore` holding the last good state, handing out immutable snapshots.
 - `GET /healthz` → 200 whenever the process is serving.
 - `GET /api/status` → the shape defined in the README.
-- `LABWATCH_PROFILE=demo` loads `src/test/resources/demo.json` fixtures and
+- `LABWATCH_PROFILE=demo` loads `src/main/resources/demo.json` fixtures and
   serves them. No collectors exist yet.
 
 **Acceptance**
