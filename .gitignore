@@ -1,0 +1,28 @@
+# --- secrets: keep these first, they are the ones that matter ---
+.env
+*.env
+!.env.example
+*.pem
+*.key
+secrets/
+
+# --- build output ---
+target/
+*.jar
+*.war
+dependency-reduced-pom.xml
+
+# --- IntelliJ ---
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# --- misc ---
+*.log
+.DS_Store
+*.swp
+
+# Note: .sdkmanrc is intentionally NOT ignored. It pins the JDK version
+# and belongs in version control.
