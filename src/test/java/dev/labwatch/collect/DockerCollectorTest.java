@@ -16,6 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Tests DockerCollector against a synthetic fixture covering every state
@@ -128,6 +129,32 @@ class DockerCollectorTest {
         assertFalse(body.contains("/var/lib/docker/volumes"));
         assertFalse(body.contains("169.254"));
         assertFalse(body.contains("172.17"));
+    }
+
+    @Test
+    void normalizeConvertsTcpSchemeToHttp() {
+        assertEquals("http://socket-proxy:2375",
+                DockerCollector.normalize("tcp://socket-proxy:2375"));
+    }
+
+    @Test
+    void normalizePassesHttpThroughUnchanged() {
+        assertEquals("http://socket-proxy:2375",
+                DockerCollector.normalize("http://socket-proxy:2375"));
+    }
+
+    @Test
+    void normalizeRejectsUnixScheme() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,
+                () -> DockerCollector.normalize("unix:///var/run/docker.sock"));
+        assertTrue(ex.getMessage().contains("unix://"));
+        assertTrue(ex.getMessage().contains("socket proxy"));
+    }
+
+    @Test
+    void normalizeTrimsWhitespace() {
+        assertEquals("http://socket-proxy:2375",
+                DockerCollector.normalize("  tcp://socket-proxy:2375  "));
     }
 
     // --- helpers ---

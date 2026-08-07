@@ -27,9 +27,27 @@ public class DockerCollector implements Collector {
     private final String endpoint;
 
     public DockerCollector(String endpoint) {
+        this.endpoint = normalize(endpoint);
         this.httpClient = HttpClient.newHttpClient();
         this.mapper = Json.mapper();
-        this.endpoint = endpoint;
+    }
+
+    /** Normalise the {@code DOCKER_HOST} value into an HTTP URL.
+     *  {@code tcp://} is the conventional Docker scheme; HttpClient speaks
+     *  {@code http}. {@code unix://} is rejected because the socket proxy
+     *  is the only supported path — raw socket access is root-equivalent
+     *  and must not work even by accident. */
+    static String normalize(String raw) {
+        String s = raw.trim();
+        if (s.startsWith("unix://")) {
+            throw new IllegalArgumentException(
+                    "unix:// socket paths are not supported. "
+                    + "Point DOCKER_HOST at a socket proxy: tcp://socket-proxy:2375");
+        }
+        if (s.startsWith("tcp://")) {
+            s = "http://" + s.substring("tcp://".length());
+        }
+        return s;
     }
 
     @Override
