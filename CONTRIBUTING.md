@@ -8,3 +8,4 @@
 - Merge with `git merge --no-ff`. Never fast-forward.
 - Use the default `~/.m2` repository. No `-Dmaven.repo.local` override.
 - Stay in milestone scope. Flag out-of-scope findings, don't fix them.
+- Mutate the critical predicate of each milestone before merging; confirm a test fails.
