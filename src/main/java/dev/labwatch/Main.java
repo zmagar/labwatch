@@ -2,6 +2,7 @@ package dev.labwatch;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.labwatch.collect.DockerCollector;
 import dev.labwatch.http.Json;
 import dev.labwatch.http.Routes;
 import dev.labwatch.model.Service;
@@ -41,6 +42,11 @@ public class Main {
         } else {
             LOG.info("profile={}: no collectors exist yet, serving an empty status", profile);
         }
+
+        // Constructed now; polled by the M04 scheduler.
+        String dockerHost = env("DOCKER_HOST", "tcp://socket-proxy:2375");
+        DockerCollector dockerCollector = new DockerCollector(dockerHost);
+        LOG.info("docker collector configured for {}", dockerHost);
 
         Javalin app = Routes.create(store, mapper, profile);
         start(app, addr);
