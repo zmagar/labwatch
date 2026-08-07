@@ -33,6 +33,8 @@ Rules that apply to every milestone:
 
 **Out of scope:** any real API call, any HTML.
 
+**Status:** complete.
+
 ---
 
 ## 02 — Visibility filtering
@@ -56,6 +58,9 @@ to leak.
   the point is that hidden names are not in the response body.
 - Test asserts the payload contains no image names, volume paths, or port
   mappings for any service.
+
+**Status:** complete. Both filter arms mutation-verified — breaking either
+predicate fails a test.
 
 ---
 
@@ -82,6 +87,43 @@ to leak.
   `FilterTest` M02 covers the constructor-default case; M03 needs the
   real label-map path.
 
+### State mapping (decided)
+
+Docker `State` maps to `State` as follows:
+
+| Docker        | labwatch   |
+|---------------|------------|
+| `running`     | `UP`       |
+| `restarting`  | `DEGRADED` |
+| `paused`      | `DEGRADED` |
+| `exited`      | `DOWN`     |
+| `dead`        | `DOWN`     |
+| `created`     | `DOWN`     |
+| anything else | `UNKNOWN`  |
+
+The `Health` object is deliberately ignored in M03 — a running container
+reporting `unhealthy` still maps to `UP`. Revisit when HTTP health probes
+are added.
+
+### Live verification — 2026-08-07
+
+Verified against real Docker on `.244`, not only fixtures:
+
+- Collected 39 real containers through the socket proxy over an SSH tunnel,
+  using a `tcp://` endpoint — exercising the scheme normalization that unit
+  tests could not reach.
+- With no `labwatch.*` labels present anywhere, 0 of 39 were visible. The
+  allowlist default holds against real data.
+- After labelling one container `labwatch.show=true`, exactly one service
+  appeared, with `labwatch.name` and `labwatch.group` applied.
+
+**Known gap:** `cpu_pct` and `mem_bytes` come back null. `/containers/json`
+does not return resource usage; populating them needs a per-container
+`/containers/{id}/stats` call and an additional socket-proxy permission.
+Decide in M04 whether to fill them or drop the fields.
+
+**Status:** complete.
+
 ---
 
 ## 04 — Proxmox collector and partial failure
@@ -99,6 +141,8 @@ to leak.
   last known services, and reports `ok: false` for that source.
 - Stopping the socket proxy produces the same behavior for Docker.
 - The token is never present in any response body or log line.
+- Verified live: `docker stop socket-proxy` while the app is running degrades
+  that source without blanking the page.
 
 ---
 
@@ -143,21 +187,3 @@ to leak.
 - TrueNAS collector (pool health, scrub status)
 - HTTP health probes for services that are "up" as a container but not
   actually answering
-
-### M03 state mapping (decided)
-
-Docker `State` maps to `State` as follows:
-
-| Docker      | labwatch   |
-|-------------|------------|
-| `running`   | `UP`       |
-| `restarting`| `DEGRADED` |
-| `paused`    | `DEGRADED` |
-| `exited`    | `DOWN`     |
-| `dead`      | `DOWN`     |
-| `created`   | `DOWN`     |
-| anything else | `UNKNOWN` |
-
-The `Health` object is deliberately ignored in M03 — a running container
-reporting `unhealthy` still maps to `UP`. Revisit when HTTP health probes
-are added.
