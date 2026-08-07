@@ -77,6 +77,10 @@ to leak.
   the poll loop.
 - Parsing is unit-tested against a captured JSON response committed as a
   fixture (scrubbed of anything real).
+- The label-parsing path must also be tested for the default
+  (`show=false` when `labwatch.show` is absent from the label map).
+  `FilterTest` M02 covers the constructor-default case; M03 needs the
+  real label-map path.
 
 ---
 

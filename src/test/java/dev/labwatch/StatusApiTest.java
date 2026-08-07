@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dev.labwatch.http.Json;
 import dev.labwatch.http.Routes;
 import dev.labwatch.store.StatusStore;
+import dev.labwatch.visibility.Profile;
 import io.javalin.Javalin;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -68,7 +69,7 @@ class StatusApiTest {
     static void startDemoApp() throws Exception {
         StatusStore store = new StatusStore();
         Main.loadDemo(Json.mapper(), store);
-        app = Routes.create(store, Json.mapper());
+        app = Routes.create(store, Json.mapper(), Profile.DEMO);
         app.start(0);
         port = app.port();
     }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import dev.labwatch.http.Json;
 import dev.labwatch.http.Routes;
 import dev.labwatch.store.StatusStore;
+import dev.labwatch.visibility.Profile;
 import io.javalin.Javalin;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,7 +29,7 @@ class HealthzTest {
     @BeforeAll
     static void startEmptyApp() {
         StatusStore store = new StatusStore(); // no fixtures, no demo load
-        app = Routes.create(store, Json.mapper());
+        app = Routes.create(store, Json.mapper(), Profile.PRIVATE);
         app.start(0);
         port = app.port();
     }
