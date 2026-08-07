@@ -36,6 +36,12 @@ class FilterTest {
     private static final CollectedService publicService =
             collected("public-svc", "PublicService", true, Set.of("public"));
 
+    private static final CollectedService showFalsePublic =
+            collected("false-public", "FalsePublic", false, Set.of("public"));
+
+    private static final CollectedService showTrueNoProfiles =
+            collected("noprofiles", "NoProfiles", true, Set.of());
+
     private static final List<CollectedService> ALL = List.of(
             hiddenByDefault, showFalse, onlyPrivate, publicService);
 
@@ -93,6 +99,33 @@ class FilterTest {
         StatusSnapshot fromPrivate = Filter.apply(raw, Profile.PRIVATE);
         assertEquals(MAPPER.writeValueAsString(fromDemo),
                 MAPPER.writeValueAsString(fromPrivate));
+    }
+
+    @Test
+    void showFalseWithPublicProfilesAbsentFromPublic() throws Exception {
+        StatusSnapshot api = Filter.apply(
+                raw(List.of(showFalsePublic, publicService)), Profile.PUBLIC);
+        String body = MAPPER.writeValueAsString(api);
+        assertEquals(1, MAPPER.readTree(body).get("services").size());
+        assertTrue(body.contains("\"PublicService\""));
+        assertFalse(body.contains("\"FalsePublic\""));
+    }
+
+    @Test
+    void showTrueWithEmptyProfilesAbsentFromPublicPresentInPrivate() throws Exception {
+        // public: empty profiles doesn't contain "public" → absent
+        StatusSnapshot api = Filter.apply(
+                raw(List.of(showTrueNoProfiles, publicService)), Profile.PUBLIC);
+        String body = MAPPER.writeValueAsString(api);
+        assertEquals(1, MAPPER.readTree(body).get("services").size());
+        assertTrue(body.contains("\"PublicService\""));
+        assertFalse(body.contains("\"NoProfiles\""));
+
+        // private: show=true is all that matters → present
+        api = Filter.apply(raw(List.of(showTrueNoProfiles)), Profile.PRIVATE);
+        body = MAPPER.writeValueAsString(api);
+        assertEquals(1, MAPPER.readTree(body).get("services").size());
+        assertTrue(body.contains("\"NoProfiles\""));
     }
 
     @Test
