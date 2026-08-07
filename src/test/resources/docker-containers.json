@@ -420,5 +420,66 @@
       }
     },
     "Mounts": []
+  },
+  {
+    "Id": "9999999999999999999999999999999999999999999999999999999999999999",
+    "Names": [
+      "/orphan"
+    ],
+    "Image": "example/orphan:latest",
+    "ImageID": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+    "Command": "docker-entrypoint.sh postgres",
+    "Created": 1786133000,
+    "Ports": [
+      {
+        "PrivatePort": 5432,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "org.opencontainers.image.title": "postgres",
+      "com.docker.compose.project": "example",
+      "com.docker.compose.service": "db"
+    },
+    "State": "exited",
+    "Status": "Exited (137) 3 weeks ago",
+    "HostConfig": {
+      "NetworkMode": "example_default"
+    },
+    "Health": {
+      "Status": "healthy",
+      "FailingStreak": 0
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "example_default": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "EndpointID": "0000000000000000000000000000000000000000000000000000000000000000",
+          "Gateway": "172.18.0.1",
+          "IPAddress": "172.18.0.4",
+          "MacAddress": "e6:be:f5:f1:14:04",
+          "IPPrefixLen": 16,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    },
+    "Mounts": [
+      {
+        "Type": "volume",
+        "Source": "/var/lib/docker/volumes/example_db/_data",
+        "Destination": "/var/lib/postgresql/data",
+        "Mode": "rw",
+        "RW": true,
+        "Propagation": ""
+      }
+    ]
   }
 ]
