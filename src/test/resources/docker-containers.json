@@ -1,0 +1,424 @@
+[
+  {
+    "Id": "1111111111111111111111111111111111111111111111111111111111111111",
+    "Names": [
+      "/web"
+    ],
+    "Image": "nginx:1.27",
+    "ImageID": "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    "Command": "nginx -g 'daemon off;'",
+    "Created": 1786130000,
+    "Ports": [
+      {
+        "IP": "127.0.0.1",
+        "PrivatePort": 80,
+        "PublicPort": 8080,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "org.opencontainers.image.title": "nginx",
+      "org.opencontainers.image.version": "1.27",
+      "labwatch.show": "true",
+      "labwatch.group": "media",
+      "labwatch.name": "Web Frontend",
+      "labwatch.url": "http://example.test:8080"
+    },
+    "State": "running",
+    "Status": "Up 6 days",
+    "HostConfig": {
+      "NetworkMode": "labwatch-net"
+    },
+    "Health": {
+      "Status": "healthy",
+      "FailingStreak": 0
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "labwatch-net": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "EndpointID": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "Gateway": "169.254.3.65",
+          "IPAddress": "169.254.3.66",
+          "MacAddress": "e6:be:f5:f1:14:01",
+          "IPPrefixLen": 28,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    },
+    "Mounts": [
+      {
+        "Type": "bind",
+        "Source": "/srv/web/config",
+        "Destination": "/etc/nginx/conf.d",
+        "Mode": "ro",
+        "RW": false,
+        "Propagation": "rprivate"
+      }
+    ]
+  },
+  {
+    "Id": "2222222222222222222222222222222222222222222222222222222222222222",
+    "Names": [
+      "/api"
+    ],
+    "Image": "example/api:2.1",
+    "ImageID": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "Command": "/usr/local/bin/api",
+    "Created": 1786131000,
+    "Ports": [
+      {
+        "IP": "0.0.0.0",
+        "PrivatePort": 3000,
+        "PublicPort": 3000,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "labwatch.show": "true",
+      "labwatch.group": "apps",
+      "labwatch.profiles": "public"
+    },
+    "State": "running",
+    "Status": "Up 3 hours",
+    "HostConfig": {
+      "NetworkMode": "labwatch-net"
+    },
+    "Health": {
+      "Status": "none",
+      "FailingStreak": 0
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "labwatch-net": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "EndpointID": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "Gateway": "169.254.3.65",
+          "IPAddress": "169.254.3.67",
+          "MacAddress": "e6:be:f5:f1:14:02",
+          "IPPrefixLen": 28,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    },
+    "Mounts": []
+  },
+  {
+    "Id": "3333333333333333333333333333333333333333333333333333333333333333",
+    "Names": [
+      "/hidden-by-label"
+    ],
+    "Image": "example/private:latest",
+    "ImageID": "sha256:3333333333333333333333333333333333333333333333333333333333333333",
+    "Command": "/entrypoint.sh",
+    "Created": 1786132000,
+    "Ports": [],
+    "Labels": {
+      "labwatch.show": "false",
+      "labwatch.group": "apps"
+    },
+    "State": "running",
+    "Status": "Up 12 days",
+    "HostConfig": {
+      "NetworkMode": "bridge"
+    },
+    "Health": {
+      "Status": "none",
+      "FailingStreak": 0
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "EndpointID": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "Gateway": "172.17.0.1",
+          "IPAddress": "172.17.0.5",
+          "MacAddress": "e6:be:f5:f1:14:03",
+          "IPPrefixLen": 16,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    },
+    "Mounts": [
+      {
+        "Type": "volume",
+        "Source": "/var/lib/docker/volumes/private_data/_data",
+        "Destination": "/data",
+        "Mode": "rw",
+        "RW": true,
+        "Propagation": ""
+      }
+    ]
+  },
+  {
+    "Id": "4444444444444444444444444444444444444444444444444444444444444444",
+    "Names": [
+      "/unlabeled"
+    ],
+    "Image": "postgres:16",
+    "ImageID": "sha256:4444444444444444444444444444444444444444444444444444444444444444",
+    "Command": "docker-entrypoint.sh postgres",
+    "Created": 1786133000,
+    "Ports": [
+      {
+        "PrivatePort": 5432,
+        "Type": "tcp"
+      }
+    ],
+    "Labels": {
+      "org.opencontainers.image.title": "postgres",
+      "com.docker.compose.project": "example",
+      "com.docker.compose.service": "db"
+    },
+    "State": "running",
+    "Status": "Up 2 weeks",
+    "HostConfig": {
+      "NetworkMode": "example_default"
+    },
+    "Health": {
+      "Status": "healthy",
+      "FailingStreak": 0
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "example_default": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "EndpointID": "0000000000000000000000000000000000000000000000000000000000000000",
+          "Gateway": "172.18.0.1",
+          "IPAddress": "172.18.0.4",
+          "MacAddress": "e6:be:f5:f1:14:04",
+          "IPPrefixLen": 16,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    },
+    "Mounts": [
+      {
+        "Type": "volume",
+        "Source": "/var/lib/docker/volumes/example_db/_data",
+        "Destination": "/var/lib/postgresql/data",
+        "Mode": "rw",
+        "RW": true,
+        "Propagation": ""
+      }
+    ]
+  },
+  {
+    "Id": "5555555555555555555555555555555555555555555555555555555555555555",
+    "Names": [
+      "/worker"
+    ],
+    "Image": "example/worker:1.0",
+    "ImageID": "sha256:5555555555555555555555555555555555555555555555555555555555555555",
+    "Command": "/usr/local/bin/worker",
+    "Created": 1786134000,
+    "Ports": [],
+    "Labels": {
+      "labwatch.show": "true",
+      "labwatch.group": "apps",
+      "labwatch.name": "Batch Worker"
+    },
+    "State": "exited",
+    "Status": "Exited (0) 4 hours ago",
+    "HostConfig": {
+      "NetworkMode": "labwatch-net"
+    },
+    "Health": {
+      "Status": "none",
+      "FailingStreak": 0
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "labwatch-net": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "EndpointID": "1111111111111111111111111111111111111111111111111111111111111111",
+          "Gateway": "169.254.3.65",
+          "IPAddress": "169.254.3.68",
+          "MacAddress": "e6:be:f5:f1:14:05",
+          "IPPrefixLen": 28,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    },
+    "Mounts": []
+  },
+  {
+    "Id": "6666666666666666666666666666666666666666666666666666666666666666",
+    "Names": [
+      "/cache"
+    ],
+    "Image": "redis:7-alpine",
+    "ImageID": "sha256:6666666666666666666666666666666666666666666666666666666666666666",
+    "Command": "docker-entrypoint.sh redis-server",
+    "Created": 1786135000,
+    "Ports": [],
+    "Labels": {
+      "labwatch.show": "true",
+      "labwatch.group": "infra"
+    },
+    "State": "restarting",
+    "Status": "Restarting (1) 30 seconds ago",
+    "HostConfig": {
+      "NetworkMode": "labwatch-net"
+    },
+    "Health": {
+      "Status": "unhealthy",
+      "FailingStreak": 3
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "labwatch-net": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "EndpointID": "2222222222222222222222222222222222222222222222222222222222222222",
+          "Gateway": "169.254.3.65",
+          "IPAddress": "169.254.3.69",
+          "MacAddress": "e6:be:f5:f1:14:06",
+          "IPPrefixLen": 28,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    },
+    "Mounts": []
+  },
+  {
+    "Id": "7777777777777777777777777777777777777777777777777777777777777777",
+    "Names": [
+      "/paused-svc"
+    ],
+    "Image": "example/paused:latest",
+    "ImageID": "sha256:7777777777777777777777777777777777777777777777777777777777777777",
+    "Command": "/entrypoint.sh",
+    "Created": 1786136000,
+    "Ports": [],
+    "Labels": {
+      "labwatch.show": "true",
+      "labwatch.group": "infra",
+      "labwatch.profiles": "public,private"
+    },
+    "State": "paused",
+    "Status": "Up 5 days (Paused)",
+    "HostConfig": {
+      "NetworkMode": "labwatch-net"
+    },
+    "Health": {
+      "Status": "none",
+      "FailingStreak": 0
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "labwatch-net": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "EndpointID": "3333333333333333333333333333333333333333333333333333333333333333",
+          "Gateway": "169.254.3.65",
+          "IPAddress": "169.254.3.70",
+          "MacAddress": "e6:be:f5:f1:14:07",
+          "IPPrefixLen": 28,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    },
+    "Mounts": []
+  },
+  {
+    "Id": "8888888888888888888888888888888888888888888888888888888888888888",
+    "Names": [
+      "/odd-state"
+    ],
+    "Image": "example/odd:latest",
+    "ImageID": "sha256:8888888888888888888888888888888888888888888888888888888888888888",
+    "Command": "/entrypoint.sh",
+    "Created": 1786137000,
+    "Ports": [],
+    "Labels": {
+      "labwatch.show": "true",
+      "labwatch.group": "infra"
+    },
+    "State": "dead",
+    "Status": "Dead",
+    "HostConfig": {
+      "NetworkMode": "bridge"
+    },
+    "Health": {
+      "Status": "none",
+      "FailingStreak": 0
+    },
+    "NetworkSettings": {
+      "Networks": {
+        "bridge": {
+          "IPAMConfig": null,
+          "Links": null,
+          "Aliases": null,
+          "DriverOpts": null,
+          "GwPriority": 0,
+          "NetworkID": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "EndpointID": "4444444444444444444444444444444444444444444444444444444444444444",
+          "Gateway": "172.17.0.1",
+          "IPAddress": "172.17.0.9",
+          "MacAddress": "e6:be:f5:f1:14:08",
+          "IPPrefixLen": 16,
+          "IPv6Gateway": "",
+          "GlobalIPv6Address": "",
+          "GlobalIPv6PrefixLen": 0,
+          "DNSNames": null
+        }
+      }
+    },
+    "Mounts": []
+  }
+]

@@ -143,3 +143,21 @@ to leak.
 - TrueNAS collector (pool health, scrub status)
 - HTTP health probes for services that are "up" as a container but not
   actually answering
+
+### M03 state mapping (decided)
+
+Docker `State` maps to `State` as follows:
+
+| Docker      | labwatch   |
+|-------------|------------|
+| `running`   | `UP`       |
+| `restarting`| `DEGRADED` |
+| `paused`    | `DEGRADED` |
+| `exited`    | `DOWN`     |
+| `dead`      | `DOWN`     |
+| `created`   | `DOWN`     |
+| anything else | `UNKNOWN` |
+
+The `Health` object is deliberately ignored in M03 — a running container
+reporting `unhealthy` still maps to `UP`. Revisit when HTTP health probes
+are added.
