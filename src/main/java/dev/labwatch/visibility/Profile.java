@@ -8,16 +8,16 @@ public enum Profile {
     PUBLIC,
     DEMO;
 
-    /** Case-sensitive. Unknown values fail fast rather than silently
+    /** Case-insensitive. Unknown values fail fast rather than silently
      *  falling through to a default — a typo in the env var must not
      *  serve data under the wrong filtering rules. */
     public static Profile fromEnv(String value) {
         for (Profile p : values()) {
-            if (p.name().equals(value)) {
+            if (p.name().equalsIgnoreCase(value)) {
                 return p;
             }
         }
         throw new IllegalArgumentException("Unknown LABWATCH_PROFILE: " + value + ". "
-                + "Expected one of private, public, demo.");
+                + "Expected one of " + java.util.Arrays.toString(values()).toLowerCase() + ".");
     }
 }
