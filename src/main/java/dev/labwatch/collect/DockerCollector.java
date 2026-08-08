@@ -14,6 +14,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
@@ -89,8 +90,10 @@ public class DockerCollector implements Collector {
                 c.status(),
                 labels.url(),
                 null, // cpuPct — stats API not in scope for this milestone
-                null  // memBytes
-        );
+                null, // memBytes
+                null, // maxCpu
+                null, // maxMem
+                c.created() != null ? Instant.ofEpochSecond(c.created()) : null);
 
         return new CollectedService(service, labels.show(), labels.profiles());
     }
@@ -113,6 +116,7 @@ public class DockerCollector implements Collector {
             @JsonProperty("Names") List<String> names,
             @JsonProperty("State") String state,
             @JsonProperty("Status") String status,
-            @JsonProperty("Labels") Map<String, String> labels) {
+            @JsonProperty("Labels") Map<String, String> labels,
+            @JsonProperty("Created") Long created) {
     }
 }

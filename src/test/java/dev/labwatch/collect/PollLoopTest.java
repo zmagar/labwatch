@@ -142,7 +142,7 @@ class PollLoopTest {
 
     private static CollectedService collected(String id, String name) {
         var svc = new Service(id, name, "container", "other",
-                State.UP, "ok", null, null, null);
+                State.UP, "ok", null, null, null, null, null, null);
         return new CollectedService(svc, true, Set.of("private"));
     }
 

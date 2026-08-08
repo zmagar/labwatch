@@ -114,7 +114,10 @@ The normalized `Service` shape below deliberately omits all of these. Don't add 
       "detail": "Up 6 days",
       "url": "http://192.168.0.244:8096",
       "cpu_pct": 3.1,
-      "mem_bytes": 812187648
+      "mem_bytes": 812187648,
+      "max_cpu": null,
+      "max_mem": null,
+      "created_at": null
     },
     {
       "id": "proxmox:lxc/107",
@@ -125,7 +128,10 @@ The normalized `Service` shape below deliberately omits all of these. Don't add 
       "detail": "uptime 21d",
       "url": null,
       "cpu_pct": 0.4,
-      "mem_bytes": 268435456
+      "mem_bytes": 268435456,
+      "max_cpu": null,
+      "max_mem": null,
+      "created_at": null
     }
   ]
 }

@@ -103,6 +103,9 @@ public class ProxmoxCollector implements Collector {
 
         Double cpuPct = r.cpu() != null ? r.cpu() * 100.0 : null;
         Long memBytes = r.mem() != null ? r.mem() : null;
+        Integer maxCpu = r.maxcpu() != null ? r.maxcpu().intValue() : null;
+        Long maxMem = r.maxmem();
+        String detail = formatUptime(r.uptime());
 
         Service service = new Service(
                 "proxmox:" + r.id(),
@@ -110,10 +113,13 @@ public class ProxmoxCollector implements Collector {
                 r.type(), // node / qemu / lxc
                 group,
                 mapState(r.status()),
-                r.status(),
-                entry.name() != null ? null : null, // url — no equivalent in Proxmox
+                detail,
+                null, // url — no equivalent in Proxmox
                 cpuPct,
-                memBytes);
+                memBytes,
+                maxCpu,
+                maxMem,
+                null); // createdAt
 
         return new CollectedService(service, entry.show(), entry.profiles());
     }
@@ -124,6 +130,15 @@ public class ProxmoxCollector implements Collector {
             case "stopped", "offline" -> State.DOWN;
             default -> State.UNKNOWN;
         };
+    }
+
+    private static String formatUptime(Long seconds) {
+        if (seconds == null) return null;
+        long days = seconds / 86400;
+        long hours = (seconds % 86400) / 3600;
+        if (days > 0) return "Up " + days + " days";
+        if (hours > 0) return "Up " + hours + " hours";
+        return "Up " + (seconds / 60) + " minutes";
     }
 
     /** DTO for the JSON array wrapped in {@code {"data": [...]}}.
@@ -143,6 +158,9 @@ public class ProxmoxCollector implements Collector {
             String status,
             String name,
             Double cpu,
-            Long mem) {
+            Long mem,
+            Long uptime,
+            Long maxcpu,
+            Long maxmem) {
     }
 }

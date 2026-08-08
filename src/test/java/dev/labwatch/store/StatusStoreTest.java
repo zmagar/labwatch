@@ -67,7 +67,8 @@ class StatusStoreTest {
 
     private static CollectedService collected(String id, String name) {
         var svc = new dev.labwatch.model.Service(id, name, "container", "media",
-                State.UP, "Up 6 days", "http://example.test", 1.0, 100L);
+                State.UP, "Up 6 days", "http://example.test", 1.0, 100L,
+                null, null, null);
         return new CollectedService(svc, true, Set.of("private"));
     }
 }

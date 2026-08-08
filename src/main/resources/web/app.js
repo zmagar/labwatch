@@ -87,18 +87,30 @@ function serviceCard(svc, sources) {
     ? `<span class="stale-badge" title="last seen ${relativeTime(source.last_success)}">stale</span>`
     : "";
 
-  const mem = formatMem(svc.mem_bytes);
-  const cpu = formatCpu(svc.cpu_pct);
-  const meta = [svc.kind, cpu, mem].filter(Boolean).join(" · ");
+  const detail = svc.detail ? `<div class="service-detail">${svc.detail}</div>` : "";
   const url = svc.url
     ? `<a class="service-url" href="${svc.url}" target="_blank" rel="noopener">${svc.url}</a>`
     : "";
+
+  let resource = "";
+  if (source && source.name === "proxmox") {
+    const cpuPart = svc.cpu_pct != null
+      ? `cpu: ${svc.cpu_pct.toFixed(1)}%` + (svc.max_cpu ? ` of ${svc.max_cpu} cores` : "")
+      : "";
+    const memPart = svc.mem_bytes != null
+      ? formatMem(svc.mem_bytes) + (svc.max_mem ? ` / ${formatMem(svc.max_mem)}` : "")
+      : "";
+    resource = [cpuPart, memPart].filter(Boolean).join(" · ");
+  } else if (source && source.name === "docker" && svc.created_at) {
+    resource = `created ${relativeTime(svc.created_at)}`;
+  }
 
   return `<div class="service-card state-${svc.state} ${stale ? "stale" : ""}">
     <div class="state-dot"></div>
     <div class="service-name">${svc.name}</div>
     ${staleBadge}
-    <div class="service-meta"><span class="service-kind">${svc.kind}</span> ${meta}</div>
+    <div class="service-meta"><span class="service-kind">${svc.kind}</span> ${resource}</div>
+    ${detail}
     ${url ? `<div></div><div>${url}</div>` : ""}
   </div>`;
 }
