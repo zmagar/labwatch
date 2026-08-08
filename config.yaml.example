@@ -1,0 +1,16 @@
+# Proxmox visibility config. Copy to config.yaml (gitignored) and fill in.
+# Keys are Proxmox guest/VM ids as shown in the Proxmox UI (e.g. "lxc/107").
+# Entries absent from config.yaml default to show=false — the same fail-closed
+# rule as Docker labels.
+
+"lxc/107":
+  show: true
+  name: dns247
+  group: network
+  profiles: [private]
+
+"qemu/200":
+  show: true
+  name: Home Assistant
+  group: home
+  profiles: [public, private]

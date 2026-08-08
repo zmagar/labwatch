@@ -2,7 +2,11 @@ package dev.labwatch;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.labwatch.collect.Collector;
 import dev.labwatch.collect.DockerCollector;
+import dev.labwatch.collect.PollLoop;
+import dev.labwatch.collect.ProxmoxCollector;
+import dev.labwatch.collect.VisibilityConfig;
 import dev.labwatch.http.Json;
 import dev.labwatch.http.Routes;
 import dev.labwatch.model.Service;
@@ -16,7 +20,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Entrypoint and wiring. No collectors exist yet; the demo profile seeds the
@@ -47,6 +55,31 @@ public class Main {
         String dockerHost = env("DOCKER_HOST", "tcp://socket-proxy:2375");
         DockerCollector dockerCollector = new DockerCollector(dockerHost);
         LOG.info("docker collector configured for {}", dockerHost);
+
+        if (profile != Profile.DEMO) {
+            String proxmoxUrl = require("PROXMOX_URL");
+            String tokenId = require("PROXMOX_TOKEN_ID");
+            String tokenSecret = require("PROXMOX_TOKEN_SECRET");
+            Path configPath = Path.of("config.yaml");
+            VisibilityConfig visConfig = new VisibilityConfig(configPath);
+            boolean insecureTls = "true".equalsIgnoreCase(
+                    env("PROXMOX_INSECURE_TLS", "false"));
+            if (insecureTls) {
+                LOG.warn("PROXMOX_INSECURE_TLS is enabled — TLS certificate verification "
+                        + "is disabled for {}; this is fine for self-signed homelab certs "
+                        + "but do not use it outside a trusted network", proxmoxUrl);
+            }
+            ProxmoxCollector proxmoxCollector =
+                    new ProxmoxCollector(proxmoxUrl, tokenId, tokenSecret,
+                            visConfig, insecureTls);
+
+            Duration interval = Duration.ofSeconds(
+                    Long.parseLong(env("LABWATCH_POLL_INTERVAL", "30").replaceAll("[^0-9]", "")));
+            Map<String, Collector> collectors = new LinkedHashMap<>();
+            collectors.put("docker", dockerCollector);
+            collectors.put("proxmox", proxmoxCollector);
+            PollLoop.start(store, collectors, interval);
+        }
 
         Javalin app = Routes.create(store, mapper, profile);
         start(app, addr);
@@ -85,5 +118,14 @@ public class Main {
     private static String env(String name, String fallback) {
         String value = System.getenv(name);
         return value == null || value.isBlank() ? fallback : value.trim();
+    }
+
+    private static String require(String name) {
+        String value = System.getenv(name);
+        if (value == null || value.isBlank()) {
+            throw new IllegalStateException(
+                    "Missing required environment variable: " + name);
+        }
+        return value.trim();
     }
 }

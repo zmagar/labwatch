@@ -46,6 +46,13 @@
       <artifactId>jackson-datatype-jsr310</artifactId>
       <version>${jackson.version}</version>
     </dependency>
+    <!-- YAML for the Proxmox visibility config (config.yaml).
+         Matches the jackson.version property; no separate pin. -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-yaml</artifactId>
+      <version>${jackson.version}</version>
+    </dependency>
 
     <!-- Javalin logs through SLF4J and warns loudly with no binding present -->
     <dependency>

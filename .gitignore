@@ -26,3 +26,6 @@ out/
 
 # Note: .sdkmanrc is intentionally NOT ignored. It pins the JDK version
 # and belongs in version control.
+
+# Proxmox visibility config — names real VMs.
+config.yaml
