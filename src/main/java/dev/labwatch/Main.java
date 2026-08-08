@@ -47,8 +47,6 @@ public class Main {
 
         if (profile == Profile.DEMO) {
             loadDemo(mapper, store);
-        } else {
-            LOG.info("profile={}: no collectors exist yet, serving an empty status", profile);
         }
 
         // Constructed now; polled by the M04 scheduler.

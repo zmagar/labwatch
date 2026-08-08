@@ -76,13 +76,27 @@ public class PollLoop {
                 entry.lastError = null;
                 ok = true;
             } catch (Exception e) {
-                LOG.error("{} collector failed", entry.name, e);
                 String msg = e.getMessage() != null ? e.getMessage() : e.toString();
                 if (entry.lastSuccess == null) {
                     entry.lastError = "first poll has not yet succeeded: " + msg;
                 } else {
                     entry.lastError = msg;
                 }
+                entry.consecutiveFailures++;
+                if (entry.lastErrorMsg == null || !entry.lastErrorMsg.equals(msg)) {
+                    LOG.error("{} collector failed", entry.name, e);
+                    entry.consecutiveFailures = 1;
+                } else {
+                    LOG.warn("{} collector failed ({} consecutive): {}",
+                            entry.name, entry.consecutiveFailures, msg);
+                }
+                entry.lastErrorMsg = msg;
+            }
+            if (ok && entry.lastErrorMsg != null) {
+                LOG.info("{} collector recovered after {} failure(s)",
+                        entry.name, entry.consecutiveFailures);
+                entry.lastErrorMsg = null;
+                entry.consecutiveFailures = 0;
             }
             sources.add(new Source(entry.name,
                     ok,
@@ -99,6 +113,8 @@ public class PollLoop {
         List<CollectedService> lastServices = List.of();
         Instant lastSuccess;
         String lastError;
+        String lastErrorMsg;
+        int consecutiveFailures;
 
         CollectorEntry(String name, Collector collector) {
             this.name = name;
