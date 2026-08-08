@@ -1,6 +1,6 @@
 package dev.labwatch.collect;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.labwatch.http.Json;
@@ -126,12 +126,16 @@ public class ProxmoxCollector implements Collector {
         };
     }
 
-    /** DTO for the JSON array wrapped in {@code {"data": [...]}}. */
+    /** DTO for the JSON array wrapped in {@code {"data": [...]}}.
+     *  Proxmox adds fields between versions; ignore unknowns. */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     record ResourcesResponse(List<ProxmoxResource> data) {
     }
 
     /** DTO for a single entry in {@code cluster/resources}.
-     *  Fields not needed (storage, pool metadata) are ignored by Jackson. */
+     *  Proxmox adds fields between versions (disk, maxdisk, uptime,
+     *  maxcpu, …); ignore unknowns so the collector tolerates them. */
+    @JsonIgnoreProperties(ignoreUnknown = true)
     record ProxmoxResource(
             String id,
             String type,
