@@ -160,6 +160,25 @@ resource usage in `cluster/resources`; Docker does not in the list endpoint.
 - A down source shows as a visible stale badge, not an empty page.
 - View-source contains nothing that `/api/status` doesn't already expose.
 
+**Stale-rendering verification (manual — not testable without a browser)**
+
+The demo profile cannot produce a failed source, so stale rendering must
+be checked by eye:
+
+1. Start the app with the degraded demo fixture:
+   `cp src/test/resources/demo-degraded.json src/main/resources/demo.json`
+   `LABWATCH_PROFILE=demo mvn exec:java`
+2. Open `http://localhost:8080/` in a browser.
+3. Expected: the docker source badge is red with `✗` and shows
+   "last seen never". The Jellyfin service card has a dashed border,
+   reduced opacity, and a "stale" badge in the top-right corner.
+   Despite the stale source, Jellyfin still shows `up` (green dot) —
+   its last-known state. The proxmox source badge is green, and dns247
+   renders as a healthy card.
+4. Restore the original fixture: `git checkout src/main/resources/demo.json`.
+
+**Out of scope:** any real API call, any HTML.
+
 ---
 
 ## 06 — Package and deploy

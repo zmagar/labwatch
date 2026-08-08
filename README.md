@@ -137,6 +137,14 @@ The normalized `Service` shape below deliberately omits all of these. Don't add 
 
 `GET /healthz` returns 200 whenever the process is serving, independent of upstream health.
 
+### Service id contract
+
+Service `id` values follow the pattern `"<source>:<rest>"` where `<source>` matches
+the `name` field in the `sources` array — currently `docker` or `proxmox`. The
+part before the first colon is the source; source names must never contain a
+colon. This lets the UI map a service to its source for staleness without a
+separate field.
+
 ---
 
 ## Configuration
