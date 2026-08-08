@@ -137,7 +137,8 @@ class FilterTest {
         String body = MAPPER.writeValueAsString(api);
         Set<String> allowedKeys = Set.of(
                 "id", "name", "kind", "group", "state",
-                "detail", "url", "cpu_pct", "mem_bytes");
+                "detail", "url", "cpu_pct", "mem_bytes",
+                "max_cpu", "max_mem", "created_at");
         for (var node : MAPPER.readTree(body).get("services")) {
             Set<String> keys = new java.util.HashSet<>();
             node.fieldNames().forEachRemaining(keys::add);
@@ -157,6 +158,6 @@ class FilterTest {
 
     private static Service svc(String id, String name) {
         return new Service(id, name, "container", "other", State.UP,
-                "test detail", null, 1.0, 100L);
+                "test detail", null, 1.0, 100L, null, null, null);
     }
 }

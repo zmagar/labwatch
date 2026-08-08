@@ -16,6 +16,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -118,6 +119,20 @@ class DockerCollectorTest {
     @Test
     void nineContainersParsed() {
         assertEquals(9, services.size());
+    }
+
+    @Test
+    void createdAtIsPopulatedForDocker() {
+        var svc = findByContainerName("web");
+        assertNotNull(svc.service().createdAt(),
+                "Docker Created timestamp should be populated");
+    }
+
+    @Test
+    void maxCpuAndMaxMemAreNullForDocker() {
+        var svc = findByContainerName("web");
+        assertEquals(null, svc.service().maxCpu());
+        assertEquals(null, svc.service().maxMem());
     }
 
     @Test

@@ -110,6 +110,26 @@ class ProxmoxCollectorTest {
     }
 
     @Test
+    void maxCpuAndMaxMemPopulated() {
+        var svc = findByProxmoxId("qemu/101");
+        assertEquals(18, svc.service().maxCpu());
+        assertEquals(34359738368L, svc.service().maxMem());
+    }
+
+    @Test
+    void detailIsFormattedUptimeNotStatus() {
+        var svc = findByProxmoxId("qemu/101");
+        assertTrue(svc.service().detail().startsWith("Up "),
+                "detail should be uptime-formatted, got: " + svc.service().detail());
+    }
+
+    @Test
+    void createdAtIsNullForProxmox() {
+        var svc = findByProxmoxId("qemu/101");
+        assertEquals(null, svc.service().createdAt());
+    }
+
+    @Test
     void missingFromConfigDefaultsHidden() {
         // lxc/247 has show=true in the config → present.
         // If no config entry, it would be hidden. The config covers it.
