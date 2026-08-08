@@ -1,0 +1,101 @@
+/* ── layout ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 1rem;
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #111;
+  color: #e0e0e0;
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+/* ── header ─────────────────────────────────────────── */
+header { margin-bottom: 1.5rem; }
+h1 { font-size: 1.4rem; margin: 0 0 0.25rem; }
+
+#update-time {
+  font-size: 0.8rem;
+  color: #888;
+  margin-bottom: 0.75rem;
+}
+
+#sources { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.source-badge {
+  display: flex; align-items: center; gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+.source-badge.ok     { background: #1a3a1a; color: #6f6; }
+.source-badge.failed { background: #3a1a1a; color: #f66; }
+
+/* ── groups ─────────────────────────────────────────── */
+.group-heading {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #999;
+  margin: 1.25rem 0 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid #333;
+}
+
+/* ── cards ──────────────────────────────────────────── */
+.service-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.35rem 0.6rem;
+  align-items: center;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.4rem;
+  background: #1a1a1a;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+.service-card:hover { background: #222; }
+
+.service-card.stale {
+  opacity: 0.65;
+  border-style: dashed;
+  border-color: #660;
+}
+
+.state-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  grid-row: span 2;
+}
+.state-up        .state-dot { background: #4c4; box-shadow: 0 0 6px #4c4; }
+.state-down      .state-dot { background: #c44; box-shadow: 0 0 6px #c44; }
+.state-degraded  .state-dot { background: #c84; box-shadow: 0 0 6px #c84; }
+.state-unknown   .state-dot { background: #888; }
+
+.service-name { font-weight: 600; }
+.service-meta {
+  font-size: 0.78rem;
+  color: #999;
+  display: flex; gap: 0.6rem; flex-wrap: wrap;
+}
+.service-kind {
+  font-size: 0.72rem; color: #777;
+  background: #2a2a2a; padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+.service-url { font-size: 0.82rem; color: #8af; text-decoration: none; }
+.service-url:hover { text-decoration: underline; }
+
+.stale-badge {
+  font-size: 0.7rem;
+  color: #c84;
+  justify-self: end;
+}
+
+/* ── empty ──────────────────────────────────────────── */
+.empty-message {
+  text-align: center;
+  color: #666;
+  padding: 3rem 1rem;
+  font-size: 1rem;
+}

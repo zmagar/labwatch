@@ -5,6 +5,7 @@ import dev.labwatch.store.StatusStore;
 import dev.labwatch.visibility.Filter;
 import dev.labwatch.visibility.Profile;
 import io.javalin.Javalin;
+import io.javalin.http.staticfiles.Location;
 import io.javalin.json.JavalinJackson;
 
 /** Route wiring. Serialization goes through the shared {@link ObjectMapper}
@@ -15,12 +16,10 @@ public final class Routes {
     }
 
     public static Javalin create(StatusStore store, ObjectMapper mapper, Profile profile) {
-        Javalin app = Javalin.create(config ->
-                // Second argument useVirtualThreads=false: keep serialization
-                // synchronous (mapper.writeValueAsString on the request thread)
-                // rather than streaming through a piped executor — payloads here
-                // are small and the poll loop never blocks on serialization.
-                config.jsonMapper(new JavalinJackson(mapper, false)));
+        Javalin app = Javalin.create(config -> {
+            config.jsonMapper(new JavalinJackson(mapper, false));
+            config.staticFiles.add("/web", Location.CLASSPATH);
+        });
 
         app.get("/healthz", ctx -> {
             ctx.contentType("text/plain");
