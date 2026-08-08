@@ -232,3 +232,17 @@ shows a dead container as healthy.
 **Cleanup for M05:** round `cpu_pct` for display (currently 15 decimal
 places), and derive Proxmox `detail` from `uptime` rather than
 repeating `status`.
+
+### M05 live verification — 2026-08-08
+
+- Page renders grouped, colour-coded cards from live Proxmox and Docker
+  data; no service data in the served HTML.
+- Source badges reflect collector health. Stopping socket-proxy turned
+  the docker badge red within one poll cycle, with relative age
+  replacing "never"; restarting recovered it.
+- Log throttling confirmed: one ERROR with trace, then WARN lines with
+  a consecutive-failure count.
+
+**Open:** Docker cards have no cpu/mem (stats not collected), so their
+metadata line duplicates the kind badge. Either collect Docker stats or
+drop the fields — the asymmetry is visible on the page.
