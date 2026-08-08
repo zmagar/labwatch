@@ -187,3 +187,29 @@ resource usage in `cluster/resources`; Docker does not in the list endpoint.
 - TrueNAS collector (pool health, scrub status)
 - HTTP health probes for services that are "up" as a container but not
   actually answering
+### M04 live verification — 2026-08-08
+
+Verified against real Proxmox (.210) and real Docker (.244):
+
+- Both collectors polling live; `cpu_pct` changes between requests,
+  confirming the scheduler re-collects rather than caching the first
+  result.
+- Proxmox `cpu` fraction converted correctly: 0.0167 → ~1.4 percent.
+- `config.yaml` visibility works: only the two guests listed appear;
+  every other VM, LXC, node, storage pool and SDN entry is absent.
+- TLS: `PROXMOX_INSECURE_TLS=true` logs a WARN naming the host and
+  succeeds against the self-signed cert.
+- Partial failure: stopping socket-proxy flipped the docker source to
+  `ok: false` with a real error message, froze its `last_success`,
+  kept its last-known services in the payload, and left the proxmox
+  source updating normally. Restarting the proxy recovered the source
+  on the next tick with no restart of labwatch.
+
+**Carried into M05:** a stale service still reports `state: up` with
+nothing in the service object marking it stale. Staleness lives only in
+the `sources` array, so the UI must surface it — otherwise the page
+shows a dead container as healthy.
+
+**Cleanup for M05:** round `cpu_pct` for display (currently 15 decimal
+places), and derive Proxmox `detail` from `uptime` rather than
+repeating `status`.
