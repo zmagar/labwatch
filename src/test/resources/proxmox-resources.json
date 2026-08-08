@@ -1,0 +1,12 @@
+{
+  "data": [
+    { "id": "node/proxmox",   "type": "node",    "node": "proxmox", "status": "online",  "name": "proxmox",   "cpu": 0.12, "mem": 8589934592 },
+    { "id": "node/second",    "type": "node",    "node": "second",  "status": "offline", "name": "second",    "cpu": null, "mem": null },
+    { "id": "qemu/200",       "type": "qemu",    "node": "proxmox", "status": "running", "name": "homeassistant", "cpu": 0.05, "mem": 2147483648 },
+    { "id": "qemu/201",       "type": "qemu",    "node": "proxmox", "status": "stopped", "name": "old-vm",   "cpu": null, "mem": null },
+    { "id": "lxc/107",        "type": "lxc",     "node": "proxmox", "status": "running", "name": "dns247",    "cpu": 0.01, "mem": 268435456 },
+    { "id": "lxc/108",        "type": "lxc",     "node": "proxmox", "status": "stopped", "name": "unused",    "cpu": null, "mem": null },
+    { "id": "storage/local",  "type": "storage", "node": "proxmox", "status": "available", "name": "local",  "cpu": null, "mem": null },
+    { "id": "pool/prod",      "type": "pool",    "node": null,      "status": null,       "name": "prod",     "cpu": null, "mem": null }
+  ]
+}

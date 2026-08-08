@@ -117,10 +117,10 @@ Verified against real Docker on `.244`, not only fixtures:
 - After labelling one container `labwatch.show=true`, exactly one service
   appeared, with `labwatch.name` and `labwatch.group` applied.
 
-**Known gap:** `cpu_pct` and `mem_bytes` come back null. `/containers/json`
-does not return resource usage; populating them needs a per-container
-`/containers/{id}/stats` call and an additional socket-proxy permission.
-Decide in M04 whether to fill them or drop the fields.
+**Known gap (intentional):** `cpu_pct` and `mem_bytes` are populated by
+the Proxmox collector (M04) but remain `null` from Docker until per-container
+`/stats` calls are added. The asymmetry is deliberate — Proxmox embeds
+resource usage in `cluster/resources`; Docker does not in the list endpoint.
 
 **Status:** complete.
 

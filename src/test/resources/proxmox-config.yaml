@@ -1,0 +1,15 @@
+"lxc/107":
+  show: true
+  name: dns247
+  group: network
+  profiles: [private]
+
+"qemu/200":
+  show: true
+  name: Home Assistant
+  profiles: [public, private]
+
+"lxc/108":
+  show: false
+  name: Unused Container
+  group: infra
