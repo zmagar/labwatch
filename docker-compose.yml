@@ -1,0 +1,15 @@
+services:
+  labwatch:
+    build: .
+    image: labwatch:latest
+    env_file: .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+    networks:
+      - labwatch-net
+
+networks:
+  labwatch-net:
+    external: true

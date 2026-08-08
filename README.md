@@ -173,34 +173,54 @@ See `.env.example`.
 
 ## Deployment
 
-Runs on the Docker host, alongside a socket proxy:
+1. Copy the example files and fill in your secrets:
 
-```yaml
-services:
-  labwatch:
-    image: labwatch:latest
-    environment:
-      - LABWATCH_PROFILE=private
-      - DOCKER_HOST=tcp://socket-proxy:2375
-    env_file: .env
-    ports:
-      - "8080:8080"
-    depends_on:
-      - socket-proxy
+   ```bash
+   cp .env.example .env
+   cp config.yaml.example config.yaml
+   ```
 
-  socket-proxy:
-    image: tecnativa/docker-socket-proxy
-    environment:
-      - CONTAINERS=1      # everything else stays off
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-```
+   Edit `.env` with your Proxmox URL, token, and Docker host. See the
+   Configuration section above for every variable. Edit `config.yaml`
+   with the Proxmox guest ids you want visible.
 
-Build is a two-stage Dockerfile: `maven:3-eclipse-temurin-21` to build, `eclipse-temurin:21-jre-alpine` to run.
+2. The socket proxy must already be running on the `labwatch-net`
+   network with only `CONTAINERS=1` exposed. If you don't have one,
+   here is a minimal compose file for reference:
 
-The application container never sees `/var/run/docker.sock`. Access to the Docker socket is equivalent to root on the host, so the proxy exposes exactly one endpoint family and nothing else.
+   ```yaml
+   # /opt/docker/socket-proxy/docker-compose.yml
+   services:
+     socket-proxy:
+       image: tecnativa/docker-socket-proxy
+       environment:
+         - CONTAINERS=1          # everything else stays off
+       volumes:
+         - /var/run/docker.sock:/var/run/docker.sock:ro
+       networks:
+         - labwatch-net
 
-The Proxmox side uses a dedicated API token with the `PVEAuditor` role — read-only, scoped, and revocable without touching any account password.
+   networks:
+     labwatch-net:
+       external: true
+   ```
+
+3. Build and start labwatch:
+
+   ```bash
+   docker compose up -d
+   ```
+
+The application container never sees `/var/run/docker.sock`. Access to the
+Docker socket is equivalent to root on the host, so the proxy exposes exactly
+one endpoint family — `CONTAINERS=1` — and nothing else.
+
+`config.yaml` is mounted into the container at `/app/config.yaml`; the app
+reads it with `Path.of("config.yaml")` from its working directory. `.env`
+is passed via `env_file` and is never baked into the image.
+
+The Proxmox side uses a dedicated API token with the `PVEAuditor` role —
+read-only, scoped, and revocable without touching any account password.
 
 ---
 
