@@ -55,7 +55,7 @@ services:
       - "labwatch.show=true"
       - "labwatch.group=media"
       - "labwatch.name=Jellyfin"
-      - "labwatch.url=http://192.168.0.244:8096"
+      - "labwatch.url=http://media-host:8096"
 ```
 
 | Label | Required | Meaning |
@@ -112,7 +112,7 @@ The normalized `Service` shape below deliberately omits all of these. Don't add 
       "group": "media",
       "state": "up",
       "detail": "Up 6 days",
-      "url": "http://192.168.0.244:8096",
+      "url": "http://media-host:8096",
       "cpu_pct": 3.1,
       "mem_bytes": 812187648,
       "max_cpu": null,
