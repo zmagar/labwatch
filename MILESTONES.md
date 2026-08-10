@@ -246,3 +246,28 @@ repeating `status`.
 **Open:** Docker cards have no cpu/mem (stats not collected), so their
 metadata line duplicates the kind badge. Either collect Docker stats or
 drop the fields — the asymmetry is visible on the page.
+
+### M06 live verification — 2026-08-10
+
+Deployed on .244 via `docker compose up -d`, published on host port 8090.
+
+- Two-stage build produces a runnable image; container runs as non-root
+  and reaches the socket proxy over labwatch-net. No SSH tunnel.
+- App container has no /var/run/docker.sock mount — Docker access is
+  through the proxy only.
+- Both collectors green against real Proxmox (.210) and real Docker
+  (.244).
+- Permission-failure check: setting the proxy to CONTAINERS=0 turned
+  the docker source ok:false, froze its last_success, kept its
+  last-known services, left proxmox unaffected, and the app kept
+  serving. Restoring CONTAINERS=1 recovered it within one poll cycle.
+
+**Known issue:** when the proxy returns 403, the collector feeds the
+HTML error page to Jackson and surfaces a JSON parse error rather than
+"403 Forbidden". Check the HTTP status before parsing.
+
+**Deployment findings:** .env.example values are all placeholders and a
+literal copy produces a 401 (token id), a demo-profile page (profile),
+and PKIX failures (insecure TLS). README must state that every value
+requires replacing. DOCKER_HOST in a sourced .env also breaks the
+docker CLI in that shell.
