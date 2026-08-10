@@ -111,7 +111,7 @@ function serviceCard(svc, sources) {
     ${staleBadge}
     <div class="service-meta"><span class="service-kind">${svc.kind}</span> ${resource}</div>
     ${detail}
-    ${url ? `<div></div><div>${url}</div>` : ""}
+    ${url}
   </div>`;
 }
 

@@ -83,7 +83,7 @@ h1 { font-size: 1.4rem; margin: 0 0 0.25rem; }
   background: #2a2a2a; padding: 0.1rem 0.4rem;
   border-radius: 4px;
 }
-.service-url { font-size: 0.82rem; color: #8af; text-decoration: none; }
+.service-url { grid-column: 1 / -1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.82rem; color: #8af; text-decoration: none; }
 .service-url:hover { text-decoration: underline; }
 .service-detail { font-size: 0.78rem; color: #aaa; }
 
