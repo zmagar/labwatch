@@ -1,3 +1,4 @@
+![labwatch dashboard](docs/screenshot_labwatch.png)
 # labwatch
 
 A single-pane status dashboard for a self-hosted homelab. It polls a Proxmox cluster and a Docker host, normalizes both into one shape, and serves a page showing what's running and what isn't.
