@@ -1,6 +1,5 @@
-![labwatch dashboard](docs/screenshot_labwatch.png)
 # labwatch
-
+![labwatch dashboard](docs/screenshot_labwatch.png)
 A single-pane status dashboard for a self-hosted homelab. It polls a Proxmox cluster and a Docker host, normalizes both into one shape, and serves a page showing what's running and what isn't.
 
 Built because `pct list` on one box, `docker ps` on another, and a browser tab per service is a bad way to answer "is anything broken right now?"
