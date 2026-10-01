@@ -126,4 +126,43 @@
     </plugins>
   </build>
 
+  <profiles>
+    <!-- Explicit opt-in: the default lifecycle needs neither Python nor Firefox. -->
+    <profile>
+      <id>browser-tests</id>
+      <properties>
+        <browser.python>python3</browser.python>
+        <browser.firefox>firefox</browser.firefox>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>browser-tests</id>
+                <phase>verify</phase>
+                <goals><goal>exec</goal></goals>
+                <configuration combine.self="override">
+                  <executable>${browser.python}</executable>
+                  <workingDirectory>${project.basedir}</workingDirectory>
+                  <arguments>
+                    <argument>${project.basedir}/src/test/web/verify.py</argument>
+                    <argument>--java</argument>
+                    <argument>${java.home}/bin/java</argument>
+                    <argument>--firefox</argument>
+                    <argument>${browser.firefox}</argument>
+                    <argument>--output</argument>
+                    <argument>${project.build.directory}/browser-verification</argument>
+                  </arguments>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>

@@ -4,6 +4,7 @@
 - Plan mode first. Wait for numbered approval before editing.
 - No new dependencies in pom.xml without asking. Explain why.
 - `mvn test` green before session end.
+- Any change touching `src/main/resources/web/` must pass `mvn verify -Pbrowser-tests` before merge.
 - Commit on the milestone branch; pause for IntelliJ review before merge.
 - Merge with `git merge --no-ff`. Never fast-forward.
 - Use the default `~/.m2` repository. No `-Dmaven.repo.local` override.

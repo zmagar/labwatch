@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +24,7 @@ public class ProxmoxCollector implements Collector {
     private final String url;
     private final String authHeader;
     private final VisibilityConfig config;
-    private final boolean insecureTls;
+    private final HttpTimeouts timeouts;
 
     /** @param url          e.g. {@code https://proxmox.example:8006}
      *  @param tokenId      e.g. {@code user@pve!tokenname}
@@ -33,15 +32,21 @@ public class ProxmoxCollector implements Collector {
      *  @param insecureTls  if true, accept self-signed certificates */
     public ProxmoxCollector(String url, String tokenId, String secret,
                             VisibilityConfig config, boolean insecureTls) {
-        this.httpClient = insecureTls ? insecureClient() : HttpClient.newHttpClient();
+        this(url, tokenId, secret, config, insecureTls, HttpTimeouts.DEFAULT);
+    }
+
+    public ProxmoxCollector(String url, String tokenId, String secret,
+                            VisibilityConfig config, boolean insecureTls, HttpTimeouts timeouts) {
+        HttpClient.Builder builder = HttpClient.newBuilder().connectTimeout(timeouts.connect());
+        this.httpClient = insecureTls ? insecureClient(builder) : builder.build();
         this.mapper = Json.mapper();
         this.url = url;
         this.authHeader = "PVEAPIToken=" + tokenId + "=" + secret;
         this.config = config;
-        this.insecureTls = insecureTls;
+        this.timeouts = timeouts;
     }
 
-    private static HttpClient insecureClient() {
+    private static HttpClient insecureClient(HttpClient.Builder builder) {
         try {
             javax.net.ssl.TrustManager[] trustAll = new javax.net.ssl.TrustManager[]{
                     new javax.net.ssl.X509TrustManager() {
@@ -52,7 +57,7 @@ public class ProxmoxCollector implements Collector {
             };
             javax.net.ssl.SSLContext ctx = javax.net.ssl.SSLContext.getInstance("TLS");
             ctx.init(null, trustAll, new java.security.SecureRandom());
-            return HttpClient.newBuilder().sslContext(ctx).build();
+            return builder.sslContext(ctx).build();
         } catch (Exception e) {
             throw new RuntimeException("failed to build insecure SSL context", e);
         }
@@ -63,14 +68,9 @@ public class ProxmoxCollector implements Collector {
         HttpRequest request = HttpRequest.newBuilder(
                         URI.create(url + "/api2/json/cluster/resources"))
                 .header("Authorization", authHeader)
+                .timeout(timeouts.request())
                 .GET().build();
-        HttpResponse<String> response;
-        try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("proxmox collect interrupted", e);
-        }
+        var response = CollectorHttp.send(httpClient, request);
         if (response.statusCode() != 200) {
             throw new IOException("proxmox returned HTTP " + response.statusCode());
         }

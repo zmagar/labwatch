@@ -1,4 +1,9 @@
 const REFRESH_S = 15;
+const FETCH_TIMEOUT_MS = 10000;
+let lastSnapshot = null;
+let lastContact = null;
+let connectionLost = false;
+let refreshPending = false;
 
 function relativeTime(iso) {
   if (!iso) return "never";
@@ -10,6 +15,28 @@ function relativeTime(iso) {
   return Math.floor(diff / 86400) + "d ago";
 }
 
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  node.className = className;
+  if (text != null) node.textContent = text;
+  return node;
+}
+
+function age(iso, prefix) {
+  const node = element("span", "relative-time");
+  node.dataset.time = iso || "";
+  node.dataset.prefix = prefix;
+  node.textContent = prefix + relativeTime(iso);
+  return node;
+}
+
+// Runs independently of fetches, including while offline or waiting for a response.
+function updateAges() {
+  document.querySelectorAll(".relative-time").forEach(node => {
+    node.textContent = node.dataset.prefix + relativeTime(node.dataset.time);
+  });
+}
+
 function formatMem(bytes) {
   if (!bytes && bytes !== 0) return "";
   if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(1) + " GiB";
@@ -17,47 +44,83 @@ function formatMem(bytes) {
   return "0 B";
 }
 
-function formatCpu(pct) {
-  if (pct == null) return "";
-  return pct.toFixed(1) + "%";
-}
-
 function sourceForService(serviceId, sources) {
   const prefix = serviceId.split(":")[0];
   return sources.find(s => s.name === prefix);
 }
 
-async function render() {
+function safeHttpUrl(raw) {
   try {
-    const resp = await fetch("/api/status");
-    if (!resp.ok) return;
-    const data = await resp.json();
-    document.getElementById("update-time").textContent =
-      "updated " + relativeTime(data.generated_at);
-
-    renderSources(data.sources);
-    renderServices(data.services, data.sources);
-  } catch (e) {
-    console.error("fetch failed", e);
+    const url = new URL(raw);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : null;
+  } catch {
+    return null;
   }
 }
 
+async function render() {
+  if (refreshPending) return;
+  refreshPending = true;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const resp = await fetch("/api/status", {signal: controller.signal, cache: "no-store"});
+    if (!resp.ok) throw new Error("HTTP " + resp.status);
+    const data = await resp.json();
+    if (!Array.isArray(data.sources) || !Array.isArray(data.services) || !data.generated_at) {
+      throw new Error("Invalid status response");
+    }
+    lastSnapshot = data;
+    lastContact = new Date().toISOString();
+    connectionLost = false;
+  } catch (e) {
+    connectionLost = true;
+    console.error("fetch failed", e);
+  } finally {
+    clearTimeout(timeout);
+    refreshPending = false;
+  }
+  renderDashboard();
+}
+
+function renderDashboard() {
+  const connection = document.getElementById("connection-status");
+  connection.hidden = !connectionLost;
+  connection.replaceChildren();
+  if (connectionLost) {
+    connection.append(element("strong", "", "Page cannot reach labwatch. "));
+    connection.append(document.createTextNode(lastSnapshot
+      ? "Showing retained data. Source badges describe the last report. "
+      : "No status has been received yet. "));
+    connection.append(age(lastContact, "Last contact: "));
+  }
+
+  if (!lastSnapshot) {
+    document.getElementById("services").replaceChildren(
+      element("div", "empty-message", "Waiting for status from labwatch."));
+    return;
+  }
+  document.getElementById("update-time").replaceChildren(age(lastSnapshot.generated_at, "updated "));
+  renderSources(lastSnapshot.sources);
+  renderServices(lastSnapshot.services, lastSnapshot.sources);
+}
+
 function renderSources(sources) {
-  const el = document.getElementById("sources");
-  el.innerHTML = sources.map(src => {
-    const cls = src.ok ? "ok" : "failed";
-    const seen = src.ok ? "" : " · last seen " + relativeTime(src.last_success);
-    return `<span class="source-badge ${cls}">
-      <span>${src.ok ? "&#10003;" : "&#10007;"}</span>
-      ${src.name}${seen}
-    </span>`;
-  }).join("");
+  const badges = sources.map(src => {
+    const prefix = connectionLost ? "Last report: " : "";
+    const text = src.ok ? "✓ labwatch can reach " : "✗ labwatch cannot reach ";
+    const badge = element("span", "source-badge " + (src.ok ? "ok" : "failed"),
+      prefix + text + src.name);
+    if (!src.ok) badge.append(age(src.last_success, " · last seen "));
+    return badge;
+  });
+  document.getElementById("sources").replaceChildren(...badges);
 }
 
 function renderServices(services, sources) {
   const el = document.getElementById("services");
   if (services.length === 0) {
-    el.innerHTML = `<div class="empty-message">No services — nothing is configured to show.</div>`;
+    el.replaceChildren(element("div", "empty-message", "No services — nothing is configured to show."));
     return;
   }
 
@@ -68,31 +131,32 @@ function renderServices(services, sources) {
     groups.set(svc.group, g);
   }
 
-  const sortedGroups = [...groups.keys()].sort();
-  let html = "";
-  for (const group of sortedGroups) {
-    html += `<div class="group-heading">${group}</div>`;
+  const nodes = [];
+  for (const group of [...groups.keys()].sort()) {
+    nodes.push(element("div", "group-heading", group));
     const sorted = groups.get(group).sort((a, b) => a.name.localeCompare(b.name));
-    for (const svc of sorted) {
-      html += serviceCard(svc, sources);
-    }
+    for (const svc of sorted) nodes.push(serviceCard(svc, sources));
   }
-  el.innerHTML = html;
+  el.replaceChildren(...nodes);
 }
 
 function serviceCard(svc, sources) {
   const source = sourceForService(svc.id, sources);
-  const stale = source && !source.ok;
-  const staleBadge = stale
-    ? `<span class="stale-badge" title="last seen ${relativeTime(source.last_success)}">stale</span>`
-    : "";
+  const collectorStale = source && !source.ok;
+  const state = ["up", "down", "degraded", "unknown"].includes(svc.state) ? svc.state : "unknown";
+  const card = element("div", "service-card state-" + state);
+  card.classList.toggle("stale", Boolean(collectorStale || connectionLost));
+  card.classList.toggle("collector-stale", Boolean(collectorStale));
+  card.classList.toggle("browser-stale", connectionLost);
+  card.append(element("div", "state-dot"), element("div", "service-name", svc.name));
 
-  const detail = svc.detail ? `<div class="service-detail">${svc.detail}</div>` : "";
-  const url = svc.url
-    ? `<a class="service-url" href="${svc.url}" target="_blank" rel="noopener">${svc.url}</a>`
-    : "";
+  const flags = element("div", "service-flags");
+  if (collectorStale) flags.append(element("span", "stale-badge", source.name + " data stale"));
+  if (connectionLost) flags.append(element("span", "browser-stale-badge", "page disconnected"));
+  card.append(flags);
 
-  let resource = "";
+  const meta = element("div", "service-meta");
+  meta.append(element("span", "service-kind", svc.kind));
   if (source && source.name === "proxmox") {
     const cpuPart = svc.cpu_pct != null
       ? `cpu: ${svc.cpu_pct.toFixed(1)}%` + (svc.max_cpu ? ` of ${svc.max_cpu} cores` : "")
@@ -100,20 +164,25 @@ function serviceCard(svc, sources) {
     const memPart = svc.mem_bytes != null
       ? formatMem(svc.mem_bytes) + (svc.max_mem ? ` / ${formatMem(svc.max_mem)}` : "")
       : "";
-    resource = [cpuPart, memPart].filter(Boolean).join(" · ");
+    meta.append(document.createTextNode([cpuPart, memPart].filter(Boolean).join(" · ")));
   } else if (source && source.name === "docker" && svc.created_at) {
-    resource = `created ${relativeTime(svc.created_at)}`;
+    meta.append(age(svc.created_at, "created "));
   }
-
-  return `<div class="service-card state-${svc.state} ${stale ? "stale" : ""}">
-    <div class="state-dot"></div>
-    <div class="service-name">${svc.name}</div>
-    ${staleBadge}
-    <div class="service-meta"><span class="service-kind">${svc.kind}</span> ${resource}</div>
-    ${detail}
-    ${url}
-  </div>`;
+  card.append(meta);
+  if (svc.detail) card.append(element("div", "service-detail", svc.detail));
+  if (svc.url) {
+    const href = safeHttpUrl(svc.url);
+    const link = element(href ? "a" : "span", "service-url", svc.url);
+    if (href) {
+      link.href = href;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+    }
+    card.append(link);
+  }
+  return card;
 }
 
 render();
 setInterval(render, REFRESH_S * 1000);
+setInterval(updateAges, 1000);
