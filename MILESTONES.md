@@ -262,12 +262,72 @@ Deployed on .244 via `docker compose up -d`, published on host port 8090.
   last-known services, left proxmox unaffected, and the app kept
   serving. Restoring CONTAINERS=1 recovered it within one poll cycle.
 
-**Known issue:** when the proxy returns 403, the collector feeds the
-HTML error page to Jackson and surfaces a JSON parse error rather than
-"403 Forbidden". Check the HTTP status before parsing.
-
 **Deployment findings:** .env.example values are all placeholders and a
 literal copy produces a 401 (token id), a demo-profile page (profile),
 and PKIX failures (insecure TLS). README must state that every value
 requires replacing. DOCKER_HOST in a sourced .env also breaks the
 docker CLI in that shell.
+
+## 07 — Review fixes: bounded polling and safe status rendering
+
+**Branch:** `fix/collector-timeouts-and-dashboard-safety`
+
+**Scope and implementation**
+
+- Both collectors use configurable `LABWATCH_CONNECT_TIMEOUT` (default 5s)
+  and `LABWATCH_REQUEST_TIMEOUT` (default 10s), including the insecure-TLS
+  Proxmox client. A request deadline covers receiving the whole body, cancels
+  the outstanding request on expiry, and surfaces as an ordinary collector
+  failure. Last-known services and `last_success` are preserved.
+- Metadata is rendered through DOM nodes and `textContent`. Only absolute
+  HTTP/HTTPS URLs become links; other values remain plain text.
+- Browser connection loss has a blue warning and `page disconnected` card
+  badges. Collector failure has a separate source-specific amber stale badge
+  and an explicit `labwatch cannot reach <source>` source badge. Both can
+  coexist; while disconnected, source badges are labelled as the last report.
+  Age counters run independently of fetching. Browser requests have a 10s
+  deadline, and recovery clears only the corresponding failure indicators.
+- Docker rejects non-200 responses before parsing, matching Proxmox; a 403
+  now reports `docker returned HTTP 403`.
+
+**Tick budget**
+
+Polling remains sequential. Two collectors at a 10s request timeout give
+`2 × 10s = 20s` of HTTP work per tick, versus the default
+`LABWATCH_POLL_INTERVAL=30s`. The 5s connect timeout is included in the 10s
+request deadline, not added to it. The scheduler uses fixed delay: it waits
+30s after the tick finishes, so worst-case tick starts are about
+`20s + 30s = 50s` apart, plus parsing/scheduling overhead. The store publishes
+both sources at tick completion; failure is not published midway through a tick.
+
+Adding a third collector requires either parallel collection or a longer
+interval: `3 × 10s = 30s` consumes the current interval-sized work budget with
+no headroom. Revisit this arithmetic when changing timeout values or the
+collector count. Increasing the delay reduces polling frequency; it does not
+make an individual tick faster.
+
+**Verification — 2026-09-17**
+
+- Maven: 110 tests pass, including real local HTTP peers that accept requests
+  but never reply, and peers that send headers then stall mid-body. Tests
+  cover both collectors, the insecure-client construction path, retained
+  state, continued polling of the next source, and recovery.
+- Ran the packaged app with fixture upstreams and headless Firefox using
+  `python3 src/test/web/verify.py`. All 31 browser checks passed. This uses
+  the normal 5s/10s HTTP limits and a 1s polling delay to shorten reproduction.
+- Independently stalled Docker and Proxmox after successful polls. Each
+  timed out within the request budget (with scheduling tolerance), exposed
+  `ok:false` through the real `/api/status`, retained its prior services and
+  success time, and allowed the other source to keep updating.
+- Through the local proxy, reproduced HTTP 503, a dropped connection, and
+  a request that never answers. Firefox displayed connection loss, retained
+  cards, and advancing ages. Proxmox remained down during browser recovery:
+  only the browser indicator cleared. Full recovery cleared both.
+- Firefox DOM checks verified literal markup in labels, absence of injected
+  elements/event attributes, HTTP/HTTPS links, and nonclickable unsafe URLs.
+  A live Docker 403 exposed the HTTP status rather than a JSON parsing error.
+- The harness uses only loopback servers, synthetic fixtures and dummy
+  credentials. It does not touch real homelab services. Reproduction results
+  and logs are written under `target/browser-verification/`.
+
+**Status:** implemented and verified; awaiting IntelliJ review before commit/merge.

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.labwatch.collect.Collector;
 import dev.labwatch.collect.DockerCollector;
+import dev.labwatch.collect.HttpTimeouts;
 import dev.labwatch.collect.PollLoop;
 import dev.labwatch.collect.ProxmoxCollector;
 import dev.labwatch.collect.VisibilityConfig;
@@ -27,8 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/** Entrypoint and wiring. No collectors exist yet; the demo profile seeds the
- *  store from {@code /demo.json} on the classpath and nothing else happens. */
+/** Entrypoint and collector wiring. Demo seeds the store from {@code /demo.json}
+ *  without constructing or polling upstream collectors. */
 public class Main {
 
     private static final Logger LOG = LoggerFactory.getLogger(Main.class);
@@ -49,12 +50,13 @@ public class Main {
             loadDemo(mapper, store);
         }
 
-        // Constructed now; polled by the M04 scheduler.
-        String dockerHost = env("DOCKER_HOST", "tcp://socket-proxy:2375");
-        DockerCollector dockerCollector = new DockerCollector(dockerHost);
-        LOG.info("docker collector configured for {}", dockerHost);
-
         if (profile != Profile.DEMO) {
+            HttpTimeouts timeouts = new HttpTimeouts(
+                    HttpTimeouts.parse("LABWATCH_CONNECT_TIMEOUT", env("LABWATCH_CONNECT_TIMEOUT", "5s")),
+                    HttpTimeouts.parse("LABWATCH_REQUEST_TIMEOUT", env("LABWATCH_REQUEST_TIMEOUT", "10s")));
+            String dockerHost = env("DOCKER_HOST", "tcp://socket-proxy:2375");
+            DockerCollector dockerCollector = new DockerCollector(dockerHost, timeouts);
+            LOG.info("docker collector configured for {}", dockerHost);
             String proxmoxUrl = require("PROXMOX_URL");
             String tokenId = require("PROXMOX_TOKEN_ID");
             String tokenSecret = require("PROXMOX_TOKEN_SECRET");
@@ -69,7 +71,7 @@ public class Main {
             }
             ProxmoxCollector proxmoxCollector =
                     new ProxmoxCollector(proxmoxUrl, tokenId, tokenSecret,
-                            visConfig, insecureTls);
+                            visConfig, insecureTls, timeouts);
 
             Duration interval = Duration.ofSeconds(
                     Long.parseLong(env("LABWATCH_POLL_INTERVAL", "30").replaceAll("[^0-9]", "")));

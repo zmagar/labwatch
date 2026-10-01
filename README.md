@@ -141,6 +141,14 @@ The normalized `Service` shape below deliberately omits all of these. Don't add 
 
 `sources` is how partial failure surfaces. If Proxmox is unreachable the endpoint still returns 200 with the last known service list and `ok: false` on that source — a dead upstream should not blank the page. The UI marks stale sections rather than hiding them.
 
+Browser connection loss is separate from collector failure. If the page cannot
+reach labwatch, a blue connection warning and `page disconnected` card badges
+appear; retained source badges are explicitly labelled as the last report.
+An upstream failure has an amber `<source> data stale` card badge and a source
+badge saying labwatch cannot reach that source. Both indicators can appear at
+once. Age counters keep advancing while disconnected, and each indicator clears
+only when its own connection recovers. Browser requests time out after 10 seconds.
+
 `GET /healthz` returns 200 whenever the process is serving, independent of upstream health.
 
 ### Service id contract
@@ -161,13 +169,29 @@ Environment variables. No secrets in `config.yaml`, no secrets in the repo.
 |---|---|---|
 | `LABWATCH_PROFILE` | `private` | `private` \| `public` \| `demo` |
 | `LABWATCH_ADDR` | `:8080` | Listen address |
-| `LABWATCH_POLL_INTERVAL` | `30s` | Applies to all collectors |
+| `LABWATCH_POLL_INTERVAL` | `30s` | Delay after each complete sequential polling tick |
+| `LABWATCH_CONNECT_TIMEOUT` | `5s` | Connection timeout for both collectors, including insecure Proxmox TLS |
+| `LABWATCH_REQUEST_TIMEOUT` | `10s` | Deadline for each full HTTP response, including the body |
 | `PROXMOX_URL` | — | e.g. `https://proxmox.example:8006` |
 | `PROXMOX_TOKEN_ID` | — | `user@pve!tokenname` |
 | `PROXMOX_TOKEN_SECRET` | — | |
 | `DOCKER_HOST` | `tcp://socket-proxy:2375` | Points at the socket proxy, never the raw socket |
 
 See `.env.example`.
+
+HTTP timeout settings accept positive whole milliseconds (`250ms`), seconds
+(`10s`), or bare seconds (`10`). Invalid or zero values fail startup when
+collectors are enabled. A timeout is a normal source failure: the last-known
+services and `last_success` are retained, `ok` becomes false, and the next source
+is polled.
+
+With two sequential collectors, the default request budget is `2 × 10s = 20s`
+per tick, below the `30s` polling delay. Connection time is included in each
+request deadline, not added to it. The scheduler uses fixed delay, so worst-case
+tick starts are approximately `20s + 30s = 50s` apart, plus parsing/scheduling
+overhead. Source status is published at the end of the tick. Adding a third
+collector requires parallel collection or a longer interval; revisit this
+budget whenever collector count or timeout settings change.
 
 ---
 
@@ -247,6 +271,37 @@ src/main/resources/demo.json   fixture data for demo profile
 mvn test
 LABWATCH_PROFILE=demo mvn exec:java     # no infrastructure required
 ```
+
+Browser DOM tests and failure reproduction are opt-in:
+
+```bash
+mvn verify -Pbrowser-tests
+```
+
+Default `mvn test` and `mvn verify` run the Java tests only and do not require
+Python or Firefox. The `browser-tests` profile uses the existing exec Maven
+plugin in the `verify` phase, after the application JAR has been packaged.
+It adds no dependencies; a failed browser check fails the Maven build.
+
+The profile requires Maven, Java 21+, Python 3 and Firefox installed. Python
+must be available as `python3` and Firefox as `firefox` on `PATH`, or supply
+their executable paths:
+
+```bash
+mvn verify -Pbrowser-tests \
+  -Dbrowser.python=/path/to/python3 \
+  -Dbrowser.firefox=/path/to/firefox
+```
+
+The harness uses the Java runtime running Maven. It runs headless Firefox with
+a temporary profile, a real labwatch process, and loopback-only fixture
+upstreams and an API proxy.
+No homelab credentials or services are used. The harness retains the default
+5s/10s HTTP timeouts but shortens the polling delay to 1s. It reproduces stalled
+collectors, an HTTP 403, browser HTTP/network failures, a hung browser fetch,
+coexisting outages and recovery. It also checks literal metadata rendering and
+URL schemes in the real DOM. Results and logs go to `target/browser-verification/`
+(`results.json`, `app.log`, and `firefox.log`).
 
 `Collector` is a single-method interface, and collectors are the only place upstream-specific types exist. Everything past `collect/` sees `List<Service>` and nothing else — that's what makes adding a third source a contained change.
 

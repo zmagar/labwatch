@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -26,10 +25,16 @@ public class DockerCollector implements Collector {
     private final HttpClient httpClient;
     private final ObjectMapper mapper;
     private final String endpoint;
+    private final HttpTimeouts timeouts;
 
     public DockerCollector(String endpoint) {
+        this(endpoint, HttpTimeouts.DEFAULT);
+    }
+
+    public DockerCollector(String endpoint, HttpTimeouts timeouts) {
         this.endpoint = normalize(endpoint);
-        this.httpClient = HttpClient.newHttpClient();
+        this.timeouts = timeouts;
+        this.httpClient = HttpClient.newBuilder().connectTimeout(timeouts.connect()).build();
         this.mapper = Json.mapper();
     }
 
@@ -54,13 +59,11 @@ public class DockerCollector implements Collector {
     @Override
     public List<CollectedService> collect() throws IOException {
         HttpRequest request = HttpRequest.newBuilder(
-                URI.create(endpoint + "/containers/json?all=true")).GET().build();
-        HttpResponse<String> response;
-        try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("docker collect interrupted", e);
+                URI.create(endpoint + "/containers/json?all=true"))
+                .timeout(timeouts.request()).GET().build();
+        var response = CollectorHttp.send(httpClient, request);
+        if (response.statusCode() != 200) {
+            throw new IOException("docker returned HTTP " + response.statusCode());
         }
         List<ContainerSummary> containers =
                 mapper.readValue(response.body(), new TypeReference<>() {
